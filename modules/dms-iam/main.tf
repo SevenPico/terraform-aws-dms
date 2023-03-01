@@ -35,7 +35,7 @@ resource "aws_iam_role" "dms_redshift_s3" {
   count = local.enabled ? 1 : 0
 
   assume_role_policy = join("", data.aws_iam_policy_document.dms_assume_role.*.json)
-  name               = "dms-access-for-endpoint"
+  name               = "${module.context.id}-access-for-endpoint"
 
   tags = module.context.tags
 }
@@ -51,7 +51,7 @@ resource "aws_iam_role" "dms_cloudwatch_logs" {
   count = local.enabled ? 1 : 0
 
   assume_role_policy = join("", data.aws_iam_policy_document.dms_assume_role.*.json)
-  name               = "dms-cloudwatch-logs-role"
+  name               = "${module.context.id}-cloudwatch-logs-role"
 
   tags = module.context.tags
 }
@@ -67,7 +67,7 @@ resource "aws_iam_role" "dms_vpc_management" {
   count = local.enabled ? 1 : 0
 
   assume_role_policy = join("", data.aws_iam_policy_document.dms_assume_role.*.json)
-  name               = "dms-vpc-role"
+  name               = "${module.context.id}-vpc-role"
 
   tags = module.context.tags
 }

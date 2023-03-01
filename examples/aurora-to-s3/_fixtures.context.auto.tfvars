@@ -25,7 +25,7 @@ environment = "dms"
 stage       = "a2s"
 domain_name = "a2s.dms.7pi.io"
 region      = "us-east-1"
-name = "dms"
+name        = "dms"
 
 
 #name                = ""
