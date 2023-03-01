@@ -8,12 +8,12 @@ resource "aws_vpc_endpoint" "s3" {
   service_name      = "com.amazonaws.${var.region}.s3"
   route_table_ids   = local.route_table_ids
 
-  tags = module.this.tags
+  tags = module.context.tags
 }
 
 module "s3_bucket" {
-  source  = "cloudposse/s3-bucket/aws"
-  version = "2.0.3"
+  source  = "registry.terraform.io/SevenPicoForks/s3-bucket/aws"
+  version = "4.0.3"
 
   acl                          = "private"
   versioning_enabled           = false
@@ -25,7 +25,7 @@ module "s3_bucket" {
   ignore_public_acls           = true
   restrict_public_buckets      = true
 
-  context = module.this.context
+  context = module.context.self
 }
 
 # https://aws.amazon.com/premiumsupport/knowledge-center/s3-bucket-dms-target/
@@ -78,7 +78,7 @@ module "s3_label" {
   version = "0.25.0"
 
   attributes = ["s3-access"]
-  context    = module.this.context
+  context    = module.context.self
 }
 
 resource "aws_iam_policy" "s3" {

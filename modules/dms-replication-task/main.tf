@@ -1,11 +1,11 @@
 locals {
-  enabled = module.this.enabled
+  enabled = module.context.enabled
 }
 
 resource "aws_dms_replication_task" "default" {
   count = local.enabled ? 1 : 0
 
-  replication_task_id = module.this.id
+  replication_task_id = module.context.id
 
   cdc_start_position        = var.cdc_start_position
   cdc_start_time            = var.cdc_start_time
@@ -17,5 +17,5 @@ resource "aws_dms_replication_task" "default" {
   table_mappings            = var.table_mappings
   replication_task_settings = var.replication_task_settings
 
-  tags = module.this.tags
+  tags = module.context.tags
 }

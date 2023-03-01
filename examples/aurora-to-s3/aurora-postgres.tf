@@ -62,5 +62,5 @@ module "aurora_postgres_cluster" {
     }
   ]
 
-  context = module.this.context
+  context = module.context.legacy
 }

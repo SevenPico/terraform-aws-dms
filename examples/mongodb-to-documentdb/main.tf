@@ -1,9 +1,9 @@
 locals {
-  enabled              = module.this.enabled
+  enabled              = module.context.enabled
   vpc_id               = module.vpc.vpc_id
   vpc_cidr_block       = module.vpc.vpc_cidr_block
-  subnet_ids           = module.subnets.private_subnet_ids
-  route_table_ids      = module.subnets.private_route_table_ids
+  subnet_ids           = module.vpc_subnets.private_subnet_ids
+  route_table_ids      = module.vpc_subnets.private_route_table_ids
   security_group_id    = module.security_group.id
   create_dms_iam_roles = local.enabled && var.create_dms_iam_roles
 }
@@ -23,15 +23,16 @@ module "dms_iam" {
 
   enabled = local.create_dms_iam_roles
 
-  context = module.this.context
+  context = module.context.self
 }
 
 module "dms_replication_instance" {
   source = "../../modules/dms-replication-instance"
 
   # https://docs.aws.amazon.com/dms/latest/userguide/CHAP_ReleaseNotes.html
-  engine_version             = "3.4"
+  engine_version             = "3.4.6"
   replication_instance_class = "dms.t2.small"
+
 
   allocated_storage            = 50
   apply_immediately            = true
@@ -40,72 +41,91 @@ module "dms_replication_instance" {
   multi_az                     = false
   publicly_accessible          = false
   preferred_maintenance_window = "sun:10:30-sun:14:30"
-  vpc_security_group_ids       = [local.security_group_id, module.aurora_postgres_cluster.security_group_id]
+  vpc_security_group_ids       = [
+    local.security_group_id, module.ddb.security_group_id, module.openvpn.security_group_id
+  ]
   subnet_ids                   = local.subnet_ids
 
-  context = module.this.context
+  context = module.context.self
 
   depends_on = [
     # The required DMS roles must be present before replication instances can be provisioned
-    module.dms_iam,
-    aws_vpc_endpoint.s3
+    module.dms_iam
   ]
 }
 
-module "dms_endpoint_aurora_postgres" {
-  source = "../../modules/dms-endpoint"
+module "dms_endpoint_mongodb" {
+  source     = "../../modules/dms-endpoint"
+  context    = module.context.self
+  attributes = ["source"]
 
-  endpoint_type                   = "source"
-  engine_name                     = "aurora-postgresql"
-  server_name                     = module.aurora_postgres_cluster.endpoint
-  database_name                   = var.database_name
-  port                            = var.database_port
-  username                        = var.admin_user
-  password                        = var.admin_password
+  endpoint_type    = "source"
+  engine_name      = "mongodb"
+  mongodb_settings = {
+    auth_mechanism      = "scram-sha-1"
+    //(Optional) Authentication mechanism to access the MongoDB source endpoint. Defaults to default
+    auth_source         = "admin"
+    //(Optional) Authentication database name. Not used when auth_type is no. Defaults to admin.
+    auth_type           = "password"
+    //(Optional) Authentication type to access the MongoDB source endpoint. Defaults to password.
+    docs_to_investigate = 1000
+    //(Optional) Number of documents to preview to determine the document organization. Use this setting when nesting_level is set to one. Defaults to 1000
+    extract_doc_id      = false
+    //(Optional) Document ID. Use this setting when nesting_level is set to none. Defaults to false.
+    nesting_level       = "none" //Valid values are one (table mode) and none (document mode).
+  }
+
+
+  server_name                     = var.mongodb_server
+  database_name                   = var.mongodb_database_name
+  port                            = var.mongodb_port
+  username                        = var.mongodb_user
+  password                        = var.mongodb_password
   extra_connection_attributes     = ""
   secrets_manager_access_role_arn = null
   secrets_manager_arn             = null
-  ssl_mode                        = "none"
+  ssl_mode                        = "require"
 
-  attributes = ["source"]
-  context    = module.this.context
+  #  certificate_arn = ""
+  #  kms_key_arn = ""
 
-  depends_on = [
-    module.aurora_postgres_cluster
-  ]
 }
 
-module "dms_endpoint_s3_bucket" {
-  source = "../../modules/dms-endpoint"
+resource "aws_dms_certificate" "ddb" {
+  count = module.context.enabled ? 1 : 0
+  certificate_pem = one(data.external.rds_combined_ca_bundle[*].result.bundle)
+  certificate_id  = module.context.id
+}
+
+module "dms_endpoint_documentdb" {
+  source     = "../../modules/dms-endpoint"
+  context    = module.context.self
+  attributes = ["target"]
 
   endpoint_type = "target"
-  engine_name   = "s3"
+  engine_name   = "docdb"
+  #  docdb_settings = {
+  #    auth_mechanism      = "default" //(Optional) Authentication mechanism to access the MongoDB source endpoint. Defaults to default
+  #    auth_source         = "admin" //(Optional) Authentication database name. Not used when auth_type is no. Defaults to admin.
+  #    auth_type           = "password" //(Optional) Authentication type to access the MongoDB source endpoint. Defaults to password.
+  #    docs_to_investigate = 1000 //(Optional) Number of documents to preview to determine the document organization. Use this setting when nesting_level is set to one. Defaults to 1000
+  #    extract_doc_id      =  false //(Optional) Document ID. Use this setting when nesting_level is set to none. Defaults to false.
+  #    nesting_level       = "none" //Valid values are one (table mode) and none (document mode).
+  #  }
 
-  s3_settings = {
-    bucket_name                      = module.s3_bucket.bucket_id
-    bucket_folder                    = null
-    cdc_inserts_only                 = false
-    csv_row_delimiter                = " "
-    csv_delimiter                    = ","
-    data_format                      = "parquet"
-    compression_type                 = "GZIP"
-    date_partition_delimiter         = "NONE"
-    date_partition_enabled           = true
-    date_partition_sequence          = "YYYYMMDD"
-    include_op_for_full_load         = true
-    parquet_timestamp_in_millisecond = true
-    timestamp_column_name            = "timestamp"
-    service_access_role_arn          = join("", aws_iam_role.s3.*.arn)
-  }
-
-  extra_connection_attributes = ""
-
-  attributes = ["target"]
-  context    = module.this.context
+  server_name                     = module.ddb.endpoint
+  database_name                   = module.ddb.cluster_name
+  port                            = var.ddb_port
+  username                        = local.ddb_username
+  password                        = local.ddb_password
+  extra_connection_attributes     = ""
+  secrets_manager_access_role_arn = null
+  secrets_manager_arn             = null
+  ssl_mode                        = "verify-full"
+  certificate_arn                 = try(aws_dms_certificate.ddb[0].certificate_arn, "")
 
   depends_on = [
-    aws_iam_role.s3,
-    module.s3_bucket
+    module.ddb
   ]
 }
 
@@ -113,8 +133,8 @@ resource "time_sleep" "wait_for_dms_endpoints" {
   count = local.enabled ? 1 : 0
 
   depends_on = [
-    module.dms_endpoint_aurora_postgres,
-    module.dms_endpoint_s3_bucket
+    module.dms_endpoint_mongodb,
+    module.dms_endpoint_documentdb
   ]
 
   create_duration  = "2m"
@@ -129,8 +149,8 @@ module "dms_replication_task" {
   replication_instance_arn = module.dms_replication_instance.replication_instance_arn
   start_replication_task   = true
   migration_type           = "full-load-and-cdc"
-  source_endpoint_arn      = module.dms_endpoint_aurora_postgres.endpoint_arn
-  target_endpoint_arn      = module.dms_endpoint_s3_bucket.endpoint_arn
+  source_endpoint_arn      = module.dms_endpoint_mongodb.endpoint_arn
+  target_endpoint_arn      = module.dms_endpoint_documentdb.endpoint_arn
 
   # https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Tasks.CustomizingTasks.TaskSettings.html
   replication_task_settings = file("${path.module}/config/replication-task-settings.json")
@@ -138,11 +158,11 @@ module "dms_replication_task" {
   # https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Tasks.CustomizingTasks.TableMapping.html
   table_mappings = file("${path.module}/config/replication-task-table-mappings.json")
 
-  context = module.this.context
+  context = module.context.self
 
   depends_on = [
-    module.dms_endpoint_aurora_postgres,
-    module.dms_endpoint_s3_bucket,
+    module.dms_endpoint_documentdb,
+    module.dms_endpoint_mongodb,
     time_sleep.wait_for_dms_endpoints
   ]
 }
@@ -167,7 +187,7 @@ module "dms_replication_instance_event_subscription" {
   ]
 
   attributes = ["instance"]
-  context    = module.this.context
+  context    = module.context.self
 }
 
 module "dms_replication_task_event_subscription" {
@@ -188,5 +208,5 @@ module "dms_replication_task_event_subscription" {
   ]
 
   attributes = ["task"]
-  context    = module.this.context
+  context    = module.context.self
 }

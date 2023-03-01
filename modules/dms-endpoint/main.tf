@@ -1,11 +1,11 @@
 locals {
-  enabled = module.this.enabled
+  enabled = module.context.enabled
 }
 
 resource "aws_dms_endpoint" "default" {
   count = local.enabled ? 1 : 0
 
-  endpoint_id                     = module.this.id
+  endpoint_id                     = module.context.id
   endpoint_type                   = var.endpoint_type
   engine_name                     = var.engine_name
   kms_key_arn                     = var.kms_key_arn
@@ -135,5 +135,5 @@ resource "aws_dms_endpoint" "default" {
     }
   }
 
-  tags = module.this.tags
+  tags = module.context.tags
 }

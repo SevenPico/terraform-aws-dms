@@ -25,3 +25,4 @@ test.log
 *.draft
 *~
 
+_fixtures.secrets.auto.tfvars

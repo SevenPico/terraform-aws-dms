@@ -1,5 +1,5 @@
 locals {
-  enabled   = module.this.enabled
+  enabled   = module.context.enabled
   partition = join("", data.aws_partition.current.*.partition)
 }
 
@@ -37,7 +37,7 @@ resource "aws_iam_role" "dms_redshift_s3" {
   assume_role_policy = join("", data.aws_iam_policy_document.dms_assume_role.*.json)
   name               = "dms-access-for-endpoint"
 
-  tags = module.this.tags
+  tags = module.context.tags
 }
 
 resource "aws_iam_role_policy_attachment" "dms_redshift_s3" {
@@ -53,7 +53,7 @@ resource "aws_iam_role" "dms_cloudwatch_logs" {
   assume_role_policy = join("", data.aws_iam_policy_document.dms_assume_role.*.json)
   name               = "dms-cloudwatch-logs-role"
 
-  tags = module.this.tags
+  tags = module.context.tags
 }
 
 resource "aws_iam_role_policy_attachment" "dms_cloudwatch_logs" {
@@ -69,7 +69,7 @@ resource "aws_iam_role" "dms_vpc_management" {
   assume_role_policy = join("", data.aws_iam_policy_document.dms_assume_role.*.json)
   name               = "dms-vpc-role"
 
-  tags = module.this.tags
+  tags = module.context.tags
 }
 
 resource "aws_iam_role_policy_attachment" "amazon_dms_vpc_management" {

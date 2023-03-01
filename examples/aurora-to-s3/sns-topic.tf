@@ -1,6 +1,6 @@
 module "sns_topic" {
-  source  = "cloudposse/sns-topic/aws"
-  version = "0.20.1"
+  source  = "registry.terraform.io/SevenPicoForks/sns-topic/aws"
+  version = "2.0.0"
 
   sqs_dlq_enabled    = false
   fifo_topic         = false
@@ -12,5 +12,5 @@ module "sns_topic" {
     "dms.amazonaws.com"
   ]
 
-  context = module.this.context
+  context = module.context.self
 }

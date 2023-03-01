@@ -1,11 +1,11 @@
 locals {
-  enabled = module.this.enabled
+  enabled = module.context.enabled
 }
 
 resource "aws_dms_replication_instance" "default" {
   count = local.enabled ? 1 : 0
 
-  replication_instance_id = module.this.id
+  replication_instance_id = module.context.id
 
   allocated_storage            = var.allocated_storage
   auto_minor_version_upgrade   = var.auto_minor_version_upgrade
@@ -21,15 +21,15 @@ resource "aws_dms_replication_instance" "default" {
   replication_subnet_group_id  = join("", aws_dms_replication_subnet_group.default.*.id)
   vpc_security_group_ids       = var.vpc_security_group_ids
 
-  tags = module.this.tags
+  tags = module.context.tags
 }
 
 resource "aws_dms_replication_subnet_group" "default" {
   count = local.enabled ? 1 : 0
 
-  replication_subnet_group_id          = module.this.id
-  replication_subnet_group_description = format("%s DMS replication subnet group", module.this.id)
+  replication_subnet_group_id          = module.context.id
+  replication_subnet_group_description = format("%s DMS replication subnet group", module.context.id)
   subnet_ids                           = var.subnet_ids
 
-  tags = module.this.tags
+  tags = module.context.tags
 }
