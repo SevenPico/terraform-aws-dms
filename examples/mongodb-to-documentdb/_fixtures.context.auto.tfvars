@@ -21,11 +21,11 @@
 
 enabled     = true
 namespace   = "sp"
-environment = "dms"
+environment = "eg"
 stage       = "m2d"
 domain_name = "m2d.dms.7pi.io"
 region      = "us-east-1"
-name = "dms"
+name        = "dms"
 
 
 #name                = ""

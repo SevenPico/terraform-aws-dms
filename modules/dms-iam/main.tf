@@ -35,7 +35,7 @@ resource "aws_iam_role" "dms_redshift_s3" {
   count = local.enabled ? 1 : 0
 
   assume_role_policy = join("", data.aws_iam_policy_document.dms_assume_role.*.json)
-  name               = "${module.context.id}-access-for-endpoint"
+  name               = "dms-access-for-endpoint"
 
   tags = module.context.tags
 }
@@ -51,7 +51,7 @@ resource "aws_iam_role" "dms_cloudwatch_logs" {
   count = local.enabled ? 1 : 0
 
   assume_role_policy = join("", data.aws_iam_policy_document.dms_assume_role.*.json)
-  name               = "${module.context.id}-cloudwatch-logs-role"
+  name               = "dms-cloudwatch-logs-role"
 
   tags = module.context.tags
 }
@@ -67,7 +67,7 @@ resource "aws_iam_role" "dms_vpc_management" {
   count = local.enabled ? 1 : 0
 
   assume_role_policy = join("", data.aws_iam_policy_document.dms_assume_role.*.json)
-  name               = "${module.context.id}-vpc-role"
+  name               = "dms-vpc-role" //Role name has to be this or things don't work
 
   tags = module.context.tags
 }
