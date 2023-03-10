@@ -21,6 +21,10 @@ resource "aws_dms_endpoint" "default" {
   service_access_role             = var.service_access_role
   ssl_mode                        = var.ssl_mode
 
+  lifecycle {
+    ignore_changes = [password]
+  }
+
   dynamic "elasticsearch_settings" {
     for_each = var.elasticsearch_settings != null ? [true] : []
     content {
