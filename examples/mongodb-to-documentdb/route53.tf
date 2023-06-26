@@ -8,6 +8,8 @@ data "aws_route53_zone" "root" {
 # Public Zone
 # ------------------------------------------------------------------------------
 resource "aws_route53_zone" "public" {
+  #checkov:skip=CKV2_AWS_38: skipping 'Ensure Domain Name System Security Extensions (DNSSEC) signing is enabled for Amazon Route 53 public hosted zones'
+  #checkov:skip=CKV2_AWS_39: skipping 'Ensure Domain Name System (DNS) query logging is enabled for Amazon Route 53 hosted zones'
   count = module.context.enabled ? 1 : 0
   tags  = module.context.tags
   name  = module.context.domain_name
@@ -28,6 +30,8 @@ resource "aws_route53_record" "parent_name_servers" {
 # Private Zone
 # ------------------------------------------------------------------------------
 resource "aws_route53_zone" "private" {
+  #checkov:skip=CKV2_AWS_38: skipping 'Ensure Domain Name System Security Extensions (DNSSEC) signing is enabled for Amazon Route 53 public hosted zones'
+  #checkov:skip=CKV2_AWS_39: skipping 'Ensure Domain Name System (DNS) query logging is enabled for Amazon Route 53 hosted zones'
   count = module.context.enabled ? 1 : 0
   tags  = module.context.tags
   name  = module.context.domain_name

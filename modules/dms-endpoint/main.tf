@@ -3,6 +3,7 @@ locals {
 }
 
 resource "aws_dms_endpoint" "default" {
+  #checkov:skip=CKV2_AWS_49: skipping 'Ensure AWS Database Migration Service endpoints have SSL configured' because it can be configured through 'var.ssl_mode'
   count = local.enabled ? 1 : 0
 
   endpoint_id                     = module.context.id
