@@ -14,7 +14,7 @@ resource "aws_route53_zone" "public" {
 }
 
 resource "aws_route53_record" "parent_name_servers" {
-  count    = module.context.enabled ? 1 : 0
+  count = module.context.enabled ? 1 : 0
 
   zone_id = data.aws_route53_zone.root[0].id
   name    = module.context.domain_name

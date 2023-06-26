@@ -10,7 +10,7 @@ module "ssl_certificate" {
     aws_route53_zone.public
   ]
 
-  additional_dns_names              = []
+  additional_dns_names = []
   additional_secrets = {
     RDS_COMBINED_CA_BUNDLE = one(data.external.rds_combined_ca_bundle[*].result.bundle)
   }

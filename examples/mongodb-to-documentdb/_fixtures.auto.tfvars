@@ -20,9 +20,9 @@
 ## ----------------------------------------------------------------------------
 root_domain = "7pi.io"
 
-availability_zones = ["us-east-1a", "us-east-1b"]
+availability_zones   = ["us-east-1a", "us-east-1b"]
 create_dms_iam_roles = true
-vpc_cidr_block = "10.0.0.0/16"
+vpc_cidr_block       = "10.0.0.0/16"
 
 
 ddb_port = 27017

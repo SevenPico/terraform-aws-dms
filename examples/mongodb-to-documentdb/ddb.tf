@@ -27,7 +27,7 @@ locals {
 # DDB Credentials
 # ------------------------------------------------------------------------------
 resource "random_password" "ddb" {
-//  count   = module.ddb_context.enabled ? 1 : 0
+  //  count   = module.ddb_context.enabled ? 1 : 0
   length  = 16
   special = false
 }

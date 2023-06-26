@@ -41,10 +41,10 @@ module "dms_replication_instance" {
   multi_az                     = false
   publicly_accessible          = false
   preferred_maintenance_window = "sun:10:30-sun:14:30"
-  vpc_security_group_ids       = [
+  vpc_security_group_ids = [
     local.security_group_id, module.ddb.security_group_id, module.openvpn.security_group_id
   ]
-  subnet_ids                   = local.subnet_ids
+  subnet_ids = local.subnet_ids
 
   context = module.context.self
 
@@ -59,20 +59,20 @@ module "dms_endpoint_mongodb" {
   context    = module.context.self
   attributes = ["source"]
 
-  endpoint_type    = "source"
-  engine_name      = "mongodb"
+  endpoint_type = "source"
+  engine_name   = "mongodb"
   mongodb_settings = {
-    auth_mechanism      = "scram-sha-1"
+    auth_mechanism = "scram-sha-1"
     //(Optional) Authentication mechanism to access the MongoDB source endpoint. Defaults to default
-    auth_source         = "admin"
+    auth_source = "admin"
     //(Optional) Authentication database name. Not used when auth_type is no. Defaults to admin.
-    auth_type           = "password"
+    auth_type = "password"
     //(Optional) Authentication type to access the MongoDB source endpoint. Defaults to password.
     docs_to_investigate = 1000
     //(Optional) Number of documents to preview to determine the document organization. Use this setting when nesting_level is set to one. Defaults to 1000
-    extract_doc_id      = false
+    extract_doc_id = false
     //(Optional) Document ID. Use this setting when nesting_level is set to none. Defaults to false.
-    nesting_level       = "none" //Valid values are one (table mode) and none (document mode).
+    nesting_level = "none" //Valid values are one (table mode) and none (document mode).
   }
 
 
@@ -92,7 +92,7 @@ module "dms_endpoint_mongodb" {
 }
 
 resource "aws_dms_certificate" "ddb" {
-  count = module.context.enabled ? 1 : 0
+  count           = module.context.enabled ? 1 : 0
   certificate_pem = one(data.external.rds_combined_ca_bundle[*].result.bundle)
   certificate_id  = module.context.id
 }
