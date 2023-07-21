@@ -15,10 +15,10 @@ variable "mongodb_password" {
 }
 
 variable "mongodb_database_name" {
-  type        = string
+  type = string
 }
 variable "mongodb_server" {
-  type        = string
+  type = string
 }
 
 variable "mongodb_port" {
@@ -38,7 +38,7 @@ variable "ddb_port" {
 }
 
 variable "vpc_cidr_block" {
-   type = string
+  type = string
 }
 
 variable "root_domain" {

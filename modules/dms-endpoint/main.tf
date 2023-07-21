@@ -3,6 +3,7 @@ locals {
 }
 
 resource "aws_dms_endpoint" "default" {
+  #checkov:skip=CKV2_AWS_49: skipping 'Ensure AWS Database Migration Service endpoints have SSL configured' because it can be configured through 'var.ssl_mode'
   count = local.enabled ? 1 : 0
 
   endpoint_id                     = module.context.id
@@ -124,7 +125,7 @@ resource "aws_dms_endpoint" "default" {
       encoding_type                     = lookup(var.s3_settings, "encoding_type", null)
       encryption_mode                   = lookup(var.s3_settings, "encryption_mode", null)
       external_table_definition         = lookup(var.s3_settings, "external_table_definition", null)
-      ignore_headers_row                = lookup(var.s3_settings, "ignore_headers_row", null)
+      ignore_header_rows                = lookup(var.s3_settings, "ignore_header_rows", null)
       include_op_for_full_load          = lookup(var.s3_settings, "include_op_for_full_load", null)
       max_file_size                     = lookup(var.s3_settings, "max_file_size", null)
       parquet_timestamp_in_millisecond  = lookup(var.s3_settings, "parquet_timestamp_in_millisecond", null)
